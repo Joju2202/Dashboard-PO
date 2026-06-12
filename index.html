@@ -20,7 +20,7 @@
 
     .dashboard {
       width: 95%;
-      max-width: 1250px;
+      max-width: 1350px;
       margin: 40px auto;
       background: #ffffff;
       border-radius: 16px;
@@ -113,18 +113,28 @@
 
     .table-container {
       width: 100%;
-      overflow-x: auto;
+      max-height: 540px;
+      overflow: auto;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 1000px;
+      min-width: 1150px;
     }
 
     thead {
       background: #111827;
       color: #ffffff;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #111827;
     }
 
     th, td {
@@ -263,6 +273,10 @@
       .btn {
         width: 100%;
       }
+
+      .table-container {
+        max-height: 500px;
+      }
     }
   </style>
 </head>
@@ -300,6 +314,7 @@
       <table>
         <thead>
           <tr>
+            <th>Fecha</th>
             <th>Producto</th>
             <th>Cantidad</th>
             <th>Precio</th>
@@ -365,6 +380,7 @@
         const nuevoProductoRef = push(productosRef);
 
         await set(nuevoProductoRef, {
+          fecha: "",
           producto: "",
           cantidad: "",
           precio: "",
@@ -377,8 +393,15 @@
 
         await recargarDatos();
 
-        estadoConexion.textContent = "Nueva PO agregada. Llena la fila y guarda los cambios.";
+        estadoConexion.textContent = "Nueva PO agregada hasta arriba. Llena la fila y guarda los cambios.";
         estadoConexion.className = "status ok";
+
+        const primeraFila = tablaProductos.querySelector("tr[data-id]");
+        if (primeraFila) {
+          const primerInput = primeraFila.querySelector(".campo-fecha");
+          if (primerInput) primerInput.focus();
+        }
+
       } catch (error) {
         estadoConexion.textContent = "Error al agregar una nueva PO.";
         estadoConexion.className = "status error";
@@ -416,13 +439,17 @@
     function renderizarTabla(productos) {
       tablaProductos.innerHTML = "";
 
-      const entradas = Object.entries(productos);
+      const entradas = Object.entries(productos).sort((a, b) => {
+        const creadoA = a[1].creadoEn || "";
+        const creadoB = b[1].creadoEn || "";
+        return creadoB.localeCompare(creadoA);
+      });
 
       if (entradas.length === 0) {
         const filaVacia = document.createElement("tr");
 
         filaVacia.innerHTML = `
-          <td colspan="7" class="empty-message">
+          <td colspan="8" class="empty-message">
             Todavía no hay productos. Da clic en “Agregar PO” para crear la primera fila.
           </td>
         `;
@@ -444,6 +471,10 @@
       fila.dataset.id = id;
 
       fila.innerHTML = `
+        <td>
+          <input type="date" class="campo-fecha">
+        </td>
+
         <td>
           <input type="text" class="campo-producto" placeholder="Nombre del producto">
         </td>
@@ -473,6 +504,7 @@
         </td>
       `;
 
+      const inputFecha = fila.querySelector(".campo-fecha");
       const inputProducto = fila.querySelector(".campo-producto");
       const inputCantidad = fila.querySelector(".campo-cantidad");
       const inputPrecio = fila.querySelector(".campo-precio");
@@ -480,6 +512,7 @@
       const inputProveedor = fila.querySelector(".campo-proveedor");
       const inputPedido = fila.querySelector(".campo-pedido");
 
+      inputFecha.value = data.fecha || "";
       inputProducto.value = data.producto || "";
       inputCantidad.value = data.cantidad || "";
       inputPrecio.value = data.precio || "";
@@ -504,6 +537,11 @@
 
         input.addEventListener("change", () => {
           fila.classList.add("fila-pendiente");
+
+          if (input.classList.contains("roi-input")) {
+            pintarROI(input);
+          }
+
           actualizarMetricas();
           estadoConexion.textContent = "Hay cambios sin guardar.";
           estadoConexion.className = "status warning";
@@ -586,6 +624,7 @@
       formatearROI(inputROI);
 
       return {
+        fecha: fila.querySelector(".campo-fecha").value,
         producto: fila.querySelector(".campo-producto").value,
         cantidad: fila.querySelector(".campo-cantidad").value,
         precio: fila.querySelector(".campo-precio").value,
