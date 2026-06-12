@@ -232,6 +232,15 @@
       background: #15803d;
     }
 
+    .btn-export {
+      background: #0f766e;
+      color: #ffffff;
+    }
+
+    .btn-export:hover {
+      background: #115e59;
+    }
+
     .btn-row-save {
       background: #111827;
       color: #ffffff;
@@ -332,6 +341,7 @@
     <section class="actions">
       <button class="btn btn-refresh" onclick="recargarDatos()">Actualizar</button>
       <button class="btn btn-save" onclick="guardarTodo()">Guardar todo</button>
+      <button class="btn btn-export" onclick="exportarExcel()">Exportar Excel</button>
       <button class="btn btn-add" onclick="agregarPO()">Agregar PO</button>
     </section>
 
@@ -374,6 +384,7 @@
     window.recargarDatos = recargarDatos;
     window.guardarFila = guardarFila;
     window.guardarTodo = guardarTodo;
+    window.exportarExcel = exportarExcel;
 
     async function agregarPO() {
       try {
@@ -675,6 +686,79 @@
 
     function hayCambiosPendientes() {
       return tablaProductos.querySelectorAll(".fila-pendiente").length > 0;
+    }
+
+    function exportarExcel() {
+      const filas = tablaProductos.querySelectorAll("tr[data-id]");
+
+      if (filas.length === 0) {
+        estadoConexion.textContent = "No hay productos para exportar.";
+        estadoConexion.className = "status warning";
+        return;
+      }
+
+      const encabezados = [
+        "Fecha",
+        "Producto",
+        "Cantidad",
+        "Precio",
+        "ROI %",
+        "Proveedor",
+        "Pedido"
+      ];
+
+      const datos = [];
+
+      filas.forEach(fila => {
+        const data = obtenerDatosFila(fila);
+
+        datos.push([
+          data.fecha,
+          data.producto,
+          data.cantidad,
+          data.precio,
+          data.roi,
+          data.proveedor,
+          data.pedido ? "Sí" : "No"
+        ]);
+      });
+
+      const contenidoCSV = [
+        encabezados,
+        ...datos
+      ]
+        .map(fila => fila.map(valor => escaparCSV(valor)).join(";"))
+        .join("\n");
+
+      const blob = new Blob(["\uFEFF" + contenidoCSV], {
+        type: "text/csv;charset=utf-8;"
+      });
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      const fechaArchivo = new Date().toISOString().slice(0, 10);
+
+      link.href = url;
+      link.download = `Dashboard_PO_${fechaArchivo}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      URL.revokeObjectURL(url);
+
+      estadoConexion.textContent = "Archivo exportado correctamente.";
+      estadoConexion.className = "status ok";
+    }
+
+    function escaparCSV(valor) {
+      const texto = String(valor ?? "");
+
+      if (texto.includes(";") || texto.includes('"') || texto.includes("\n")) {
+        return `"${texto.replace(/"/g, '""')}"`;
+      }
+
+      return texto;
     }
 
     setInterval(() => {
