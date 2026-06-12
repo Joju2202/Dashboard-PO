@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Productos para Pedido</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #f4f6f9;
+      color: #111827;
+    }
+
+    .dashboard {
+      width: 95%;
+      max-width: 1200px;
+      margin: 40px auto;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .dashboard-header {
+      margin-bottom: 24px;
+    }
+
+    .dashboard-header h1 {
+      margin: 0;
+      font-size: 28px;
+      color: #111827;
+    }
+
+    .dashboard-header p {
+      margin: 6px 0 0;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .metric-card {
+      width: 100%;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .metric-title {
+      color: #6b7280;
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+
+    .metric-values {
+      display: flex;
+      gap: 36px;
+      align-items: center;
+    }
+
+    .metric-item span {
+      display: block;
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .metric-item strong {
+      font-size: 30px;
+      color: #111827;
+    }
+
+    .metric-item.pedidos strong {
+      color: #16a34a;
+    }
+
+    .metric-item.faltan strong {
+      color: #dc2626;
+    }
+
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 850px;
+    }
+
+    thead {
+      background: #111827;
+      color: #ffffff;
+    }
+
+    th, td {
+      padding: 14px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    th {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    td input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      background: #ffffff;
+    }
+
+    td input:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+    }
+
+    .checkbox-cell {
+      text-align: center;
+    }
+
+    .checkbox-cell input {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .roi-input {
+      font-weight: 600;
+    }
+
+    .roi-verde {
+      color: #16a34a;
+      border-color: #16a34a;
+      background: #f0fdf4;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 24px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 22px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-add {
+      background: #2563eb;
+      color: #ffffff;
+    }
+
+    .btn-add:hover {
+      background: #1d4ed8;
+    }
+
+    @media (max-width: 768px) {
+      .metric-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .metric-values {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .actions {
+        justify-content: center;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="dashboard">
+
+    <section class="dashboard-header">
+      <h1>Productos para Pedido</h1>
+      <p>Dashboard para agregar productos, revisar precios, ROI y marcar productos listos para que Vic los pida.</p>
+    </section>
+
+    <section class="metric-card">
+      <div>
+        <div class="metric-title">Estado general del pedido</div>
+        <strong id="totalProductos">0 productos agregados</strong>
+      </div>
+
+      <div class="metric-values">
+        <div class="metric-item pedidos">
+          <span>Ya pedidos</span>
+          <strong id="productosPedidos">0</strong>
+        </div>
+
+        <div class="metric-item faltan">
+          <span>Faltan</span>
+          <strong id="productosFaltan">0</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Precio</th>
+            <th>ROI %</th>
+            <th>Proveedor</th>
+            <th>Pedido</th>
+          </tr>
+        </thead>
+
+        <tbody id="tablaProductos">
+          <tr>
+            <td><input type="text" value="Ninja BN701" /></td>
+            <td><input type="number" value="100" min="0" /></td>
+            <td><input type="number" value="50" min="0" step="0.01" /></td>
+            <td><input type="text" class="roi-input" value="37%" /></td>
+            <td><input type="text" value="Shark Ninja" /></td>
+            <td class="checkbox-cell"><input type="checkbox" checked /></td>
+          </tr>
+
+          <tr>
+            <td><input type="text" value="Ninja BN701" /></td>
+            <td><input type="number" value="701" min="0" /></td>
+            <td><input type="number" value="60" min="0" step="0.01" /></td>
+            <td><input type="text" class="roi-input" value="27%" /></td>
+            <td><input type="text" value="Ninja" /></td>
+            <td class="checkbox-cell"><input type="checkbox" checked /></td>
+          </tr>
+
+          <tr>
+            <td><input type="text" value="Ninja BN701" /></td>
+            <td><input type="number" value="10" min="0" /></td>
+            <td><input type="number" value="55" min="0" step="0.01" /></td>
+            <td><input type="text" class="roi-input" value="32%" /></td>
+            <td><input type="text" value="Shark" /></td>
+            <td class="checkbox-cell"><input type="checkbox" checked /></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="actions">
+      <button class="btn btn-add" onclick="agregarFila()">Agregar PO</button>
+    </section>
+
+  </main>
+
+  <script>
+    const tablaProductos = document.getElementById("tablaProductos");
+    const totalProductos = document.getElementById("totalProductos");
+    const productosPedidos = document.getElementById("productosPedidos");
+    const productosFaltan = document.getElementById("productosFaltan");
+
+    function agregarFila() {
+      const fila = document.createElement("tr");
+
+      fila.innerHTML = `
+        <td><input type="text" placeholder="Nombre del producto" /></td>
+        <td><input type="number" placeholder="0" min="0" /></td>
+        <td><input type="number" placeholder="$0.00" min="0" step="0.01" /></td>
+        <td><input type="text" class="roi-input" placeholder="0%" /></td>
+        <td><input type="text" placeholder="Proveedor" /></td>
+        <td class="checkbox-cell"><input type="checkbox" /></td>
+      `;
+
+      tablaProductos.appendChild(fila);
+      activarEventosFila(fila);
+      actualizarMetricas();
+    }
+
+    function actualizarMetricas() {
+      const filas = tablaProductos.querySelectorAll("tr");
+      const total = filas.length;
+      const pedidos = tablaProductos.querySelectorAll('input[type="checkbox"]:checked').length;
+      const faltan = total - pedidos;
+
+      totalProductos.textContent = `${total} productos agregados`;
+      productosPedidos.textContent = pedidos;
+      productosFaltan.textContent = faltan;
+    }
+
+    function formatearROI(input) {
+      let valor = input.value.replace("%", "").trim();
+      let numero = parseFloat(valor);
+
+      input.classList.remove("roi-verde");
+
+      if (!isNaN(numero)) {
+        input.value = `${numero}%`;
+
+        if (numero >= 15) {
+          input.classList.add("roi-verde");
+        }
+      }
+    }
+
+    function activarEventosFila(fila) {
+      const checkbox = fila.querySelector('input[type="checkbox"]');
+      const roiInput = fila.querySelector(".roi-input");
+
+      checkbox.addEventListener("change", actualizarMetricas);
+
+      roiInput.addEventListener("input", () => {
+        let valor = roiInput.value.replace("%", "").trim();
+        let numero = parseFloat(valor);
+
+        roiInput.classList.remove("roi-verde");
+
+        if (!isNaN(numero) && numero >= 15) {
+          roiInput.classList.add("roi-verde");
+        }
+      });
+
+      roiInput.addEventListener("blur", () => {
+        formatearROI(roiInput);
+      });
+
+      formatearROI(roiInput);
+    }
+
+    document.querySelectorAll("#tablaProductos tr").forEach(fila => {
+      activarEventosFila(fila);
+    });
+
+    actualizarMetricas();
+  </script>
+</body>
+</html>
