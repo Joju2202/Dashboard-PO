@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>Productos para Pedido</title>
 
   <style>
@@ -82,7 +83,6 @@
 
     .metric-item strong {
       font-size: 30px;
-      color: #111827;
     }
 
     .metric-item.pedidos strong {
@@ -90,6 +90,20 @@
     }
 
     .metric-item.faltan strong {
+      color: #dc2626;
+    }
+
+    .status {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 16px;
+    }
+
+    .status.ok {
+      color: #16a34a;
+    }
+
+    .status.error {
       color: #dc2626;
     }
 
@@ -217,7 +231,7 @@
 
     <section class="dashboard-header">
       <h1>Productos para Pedido</h1>
-      <p>Dashboard para agregar productos, revisar precios, ROI y marcar productos listos para que Vic los pida.</p>
+      <p>Dashboard compartido para agregar productos, revisar precios, ROI y marcar productos listos para que Vic los pida.</p>
     </section>
 
     <section class="metric-card">
@@ -239,6 +253,8 @@
       </div>
     </section>
 
+    <div id="estadoConexion" class="status">Conectando con la base de datos...</div>
+
     <section class="table-container">
       <table>
         <thead>
@@ -252,83 +268,189 @@
           </tr>
         </thead>
 
-        <tbody id="tablaProductos">
-          <tr>
-            <td><input type="text" value="Ninja BN701" /></td>
-            <td><input type="number" value="100" min="0" /></td>
-            <td><input type="number" value="50" min="0" step="0.01" /></td>
-            <td><input type="text" class="roi-input" value="37%" /></td>
-            <td><input type="text" value="Shark Ninja" /></td>
-            <td class="checkbox-cell"><input type="checkbox" checked /></td>
-          </tr>
-
-          <tr>
-            <td><input type="text" value="Ninja BN701" /></td>
-            <td><input type="number" value="701" min="0" /></td>
-            <td><input type="number" value="60" min="0" step="0.01" /></td>
-            <td><input type="text" class="roi-input" value="27%" /></td>
-            <td><input type="text" value="Ninja" /></td>
-            <td class="checkbox-cell"><input type="checkbox" checked /></td>
-          </tr>
-
-          <tr>
-            <td><input type="text" value="Ninja BN701" /></td>
-            <td><input type="number" value="10" min="0" /></td>
-            <td><input type="number" value="55" min="0" step="0.01" /></td>
-            <td><input type="text" class="roi-input" value="32%" /></td>
-            <td><input type="text" value="Shark" /></td>
-            <td class="checkbox-cell"><input type="checkbox" checked /></td>
-          </tr>
-        </tbody>
+        <tbody id="tablaProductos"></tbody>
       </table>
     </section>
 
     <section class="actions">
-      <button class="btn btn-refresh" onclick="actualizarDashboard()">Actualizar</button>
-      <button class="btn btn-add" onclick="agregarFila()">Agregar PO</button>
+      <button class="btn btn-refresh" onclick="recargarDatos()">Actualizar</button>
+      <button class="btn btn-add" onclick="agregarPO()">Agregar PO</button>
     </section>
 
   </main>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      push,
+      set,
+      update,
+      remove,
+      onValue
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCeX3qJ-XsG70nJuknbPO553dIgo4lxfYQ",
+      authDomain: "dashboard-po.firebaseapp.com",
+      databaseURL: "https://dashboard-po-default-rtdb.firebaseio.com/",
+      projectId: "dashboard-po",
+      storageBucket: "dashboard-po.firebasestorage.app",
+      messagingSenderId: "442676711411",
+      appId: "1:442676711411:web:dca7afd452b62149400c86",
+      measurementId: "G-NEE7RCEK5F"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const productosRef = ref(db, "productosPO");
+
     const tablaProductos = document.getElementById("tablaProductos");
     const totalProductos = document.getElementById("totalProductos");
     const productosPedidos = document.getElementById("productosPedidos");
     const productosFaltan = document.getElementById("productosFaltan");
+    const estadoConexion = document.getElementById("estadoConexion");
 
-    const STORAGE_KEY = "dashboardPO_productos";
+    let productosActuales = {};
+    let cargandoDesdeFirebase = false;
 
-    function agregarFila(producto = "", cantidad = "", precio = "", roi = "", proveedor = "", pedido = false) {
+    window.agregarPO = agregarPO;
+    window.recargarDatos = recargarDatos;
+
+    function agregarPO() {
+      const nuevoProductoRef = push(productosRef);
+
+      set(nuevoProductoRef, {
+        producto: "",
+        cantidad: "",
+        precio: "",
+        roi: "",
+        proveedor: "",
+        pedido: false,
+        creadoEn: new Date().toISOString(),
+        actualizadoEn: new Date().toISOString()
+      });
+    }
+
+    function recargarDatos() {
+      estadoConexion.textContent = "Actualizando datos...";
+      estadoConexion.className = "status";
+      escucharCambios();
+    }
+
+    function escucharCambios() {
+      onValue(productosRef, (snapshot) => {
+        productosActuales = snapshot.val() || {};
+        renderizarTabla(productosActuales);
+
+        estadoConexion.textContent = "Datos sincronizados en tiempo real.";
+        estadoConexion.className = "status ok";
+      }, (error) => {
+        estadoConexion.textContent = "Error al conectar con la base de datos.";
+        estadoConexion.className = "status error";
+        console.error(error);
+      });
+    }
+
+    function renderizarTabla(productos) {
+      cargandoDesdeFirebase = true;
+      tablaProductos.innerHTML = "";
+
+      const entradas = Object.entries(productos);
+
+      entradas.forEach(([id, data]) => {
+        crearFila(id, data);
+      });
+
+      cargandoDesdeFirebase = false;
+      actualizarMetricas();
+    }
+
+    function crearFila(id, data) {
       const fila = document.createElement("tr");
+      fila.dataset.id = id;
 
       fila.innerHTML = `
-        <td><input type="text" placeholder="Nombre del producto" /></td>
-        <td><input type="number" placeholder="0" min="0" /></td>
-        <td><input type="number" placeholder="$0.00" min="0" step="0.01" /></td>
-        <td><input type="text" class="roi-input" placeholder="0%" /></td>
-        <td><input type="text" placeholder="Proveedor" /></td>
-        <td class="checkbox-cell"><input type="checkbox" /></td>
+        <td>
+          <input type="text" class="campo-producto" placeholder="Nombre del producto">
+        </td>
+
+        <td>
+          <input type="number" class="campo-cantidad" placeholder="0" min="0">
+        </td>
+
+        <td>
+          <input type="number" class="campo-precio" placeholder="$0.00" min="0" step="0.01">
+        </td>
+
+        <td>
+          <input type="text" class="campo-roi roi-input" placeholder="0%">
+        </td>
+
+        <td>
+          <input type="text" class="campo-proveedor" placeholder="Proveedor">
+        </td>
+
+        <td class="checkbox-cell">
+          <input type="checkbox" class="campo-pedido">
+        </td>
       `;
 
-      const inputs = fila.querySelectorAll("input");
+      const inputProducto = fila.querySelector(".campo-producto");
+      const inputCantidad = fila.querySelector(".campo-cantidad");
+      const inputPrecio = fila.querySelector(".campo-precio");
+      const inputROI = fila.querySelector(".campo-roi");
+      const inputProveedor = fila.querySelector(".campo-proveedor");
+      const inputPedido = fila.querySelector(".campo-pedido");
 
-      inputs[0].value = producto;
-      inputs[1].value = cantidad;
-      inputs[2].value = precio;
-      inputs[3].value = roi;
-      inputs[4].value = proveedor;
-      inputs[5].checked = pedido;
+      inputProducto.value = data.producto || "";
+      inputCantidad.value = data.cantidad || "";
+      inputPrecio.value = data.precio || "";
+      inputROI.value = data.roi || "";
+      inputProveedor.value = data.proveedor || "";
+      inputPedido.checked = data.pedido || false;
+
+      pintarROI(inputROI);
+
+      inputProducto.addEventListener("input", () => guardarCampo(id, "producto", inputProducto.value));
+      inputCantidad.addEventListener("input", () => guardarCampo(id, "cantidad", inputCantidad.value));
+      inputPrecio.addEventListener("input", () => guardarCampo(id, "precio", inputPrecio.value));
+      inputProveedor.addEventListener("input", () => guardarCampo(id, "proveedor", inputProveedor.value));
+
+      inputPedido.addEventListener("change", () => {
+        guardarCampo(id, "pedido", inputPedido.checked);
+        actualizarMetricas();
+      });
+
+      inputROI.addEventListener("input", () => {
+        pintarROI(inputROI);
+        guardarCampo(id, "roi", inputROI.value);
+      });
+
+      inputROI.addEventListener("blur", () => {
+        formatearROI(inputROI);
+        guardarCampo(id, "roi", inputROI.value);
+      });
 
       tablaProductos.appendChild(fila);
-      activarEventosFila(fila);
-      actualizarMetricas();
-      guardarDatos();
+    }
+
+    function guardarCampo(id, campo, valor) {
+      if (cargandoDesdeFirebase) return;
+
+      const productoRef = ref(db, `productosPO/${id}`);
+
+      update(productoRef, {
+        [campo]: valor,
+        actualizadoEn: new Date().toISOString()
+      });
     }
 
     function actualizarMetricas() {
       const filas = tablaProductos.querySelectorAll("tr");
       const total = filas.length;
-      const pedidos = tablaProductos.querySelectorAll('input[type="checkbox"]:checked').length;
+      const pedidos = tablaProductos.querySelectorAll(".campo-pedido:checked").length;
       const faltan = total - pedidos;
 
       totalProductos.textContent = `${total} productos agregados`;
@@ -336,9 +458,22 @@
       productosFaltan.textContent = faltan;
     }
 
+    function obtenerNumeroROI(valor) {
+      return parseFloat(String(valor).replace("%", "").trim());
+    }
+
+    function pintarROI(input) {
+      const numero = obtenerNumeroROI(input.value);
+
+      input.classList.remove("roi-verde");
+
+      if (!isNaN(numero) && numero >= 15) {
+        input.classList.add("roi-verde");
+      }
+    }
+
     function formatearROI(input) {
-      let valor = input.value.replace("%", "").trim();
-      let numero = parseFloat(valor);
+      const numero = obtenerNumeroROI(input.value);
 
       input.classList.remove("roi-verde");
 
@@ -351,105 +486,7 @@
       }
     }
 
-    function pintarROI(input) {
-      let valor = input.value.replace("%", "").trim();
-      let numero = parseFloat(valor);
-
-      input.classList.remove("roi-verde");
-
-      if (!isNaN(numero) && numero >= 15) {
-        input.classList.add("roi-verde");
-      }
-    }
-
-    function activarEventosFila(fila) {
-      const inputs = fila.querySelectorAll("input");
-      const roiInput = fila.querySelector(".roi-input");
-
-      inputs.forEach(input => {
-        input.addEventListener("input", () => {
-          if (input.classList.contains("roi-input")) {
-            pintarROI(input);
-          }
-
-          actualizarMetricas();
-          guardarDatos();
-        });
-
-        input.addEventListener("change", () => {
-          actualizarMetricas();
-          guardarDatos();
-        });
-      });
-
-      roiInput.addEventListener("blur", () => {
-        formatearROI(roiInput);
-        guardarDatos();
-      });
-
-      formatearROI(roiInput);
-    }
-
-    function guardarDatos() {
-      const filas = tablaProductos.querySelectorAll("tr");
-      const productos = [];
-
-      filas.forEach(fila => {
-        const inputs = fila.querySelectorAll("input");
-
-        productos.push({
-          producto: inputs[0].value,
-          cantidad: inputs[1].value,
-          precio: inputs[2].value,
-          roi: inputs[3].value,
-          proveedor: inputs[4].value,
-          pedido: inputs[5].checked
-        });
-      });
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(productos));
-    }
-
-    function cargarDatos() {
-      const datosGuardados = localStorage.getItem(STORAGE_KEY);
-
-      if (!datosGuardados) {
-        inicializarFilasExistentes();
-        guardarDatos();
-        actualizarMetricas();
-        return;
-      }
-
-      const productos = JSON.parse(datosGuardados);
-
-      tablaProductos.innerHTML = "";
-
-      productos.forEach(item => {
-        agregarFila(
-          item.producto,
-          item.cantidad,
-          item.precio,
-          item.roi,
-          item.proveedor,
-          item.pedido
-        );
-      });
-
-      actualizarMetricas();
-    }
-
-    function actualizarDashboard() {
-      cargarDatos();
-      alert("Dashboard actualizado.");
-    }
-
-    function inicializarFilasExistentes() {
-      document.querySelectorAll("#tablaProductos tr").forEach(fila => {
-        activarEventosFila(fila);
-      });
-    }
-
-    cargarDatos();
+    escucharCambios();
   </script>
 </body>
 </html>
