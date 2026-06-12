@@ -62,6 +62,11 @@
       margin-bottom: 6px;
     }
 
+    .metric-main {
+      font-size: 24px;
+      color: #111827;
+    }
+
     .metric-values {
       display: flex;
       gap: 36px;
@@ -154,6 +159,7 @@
     .actions {
       display: flex;
       justify-content: flex-end;
+      gap: 12px;
       margin-top: 24px;
     }
 
@@ -175,6 +181,15 @@
       background: #1d4ed8;
     }
 
+    .btn-refresh {
+      background: #111827;
+      color: #ffffff;
+    }
+
+    .btn-refresh:hover {
+      background: #374151;
+    }
+
     @media (max-width: 768px) {
       .metric-card {
         flex-direction: column;
@@ -187,7 +202,7 @@
       }
 
       .actions {
-        justify-content: center;
+        flex-direction: column;
       }
 
       .btn {
@@ -208,7 +223,7 @@
     <section class="metric-card">
       <div>
         <div class="metric-title">Estado general del pedido</div>
-        <strong id="totalProductos">0 productos agregados</strong>
+        <strong class="metric-main" id="totalProductos">0 productos agregados</strong>
       </div>
 
       <div class="metric-values">
@@ -269,6 +284,7 @@
     </section>
 
     <section class="actions">
+      <button class="btn btn-refresh" onclick="actualizarDashboard()">Actualizar</button>
       <button class="btn btn-add" onclick="agregarFila()">Agregar PO</button>
     </section>
 
@@ -280,7 +296,9 @@
     const productosPedidos = document.getElementById("productosPedidos");
     const productosFaltan = document.getElementById("productosFaltan");
 
-    function agregarFila() {
+    const STORAGE_KEY = "dashboardPO_productos";
+
+    function agregarFila(producto = "", cantidad = "", precio = "", roi = "", proveedor = "", pedido = false) {
       const fila = document.createElement("tr");
 
       fila.innerHTML = `
@@ -292,9 +310,19 @@
         <td class="checkbox-cell"><input type="checkbox" /></td>
       `;
 
+      const inputs = fila.querySelectorAll("input");
+
+      inputs[0].value = producto;
+      inputs[1].value = cantidad;
+      inputs[2].value = precio;
+      inputs[3].value = roi;
+      inputs[4].value = proveedor;
+      inputs[5].checked = pedido;
+
       tablaProductos.appendChild(fila);
       activarEventosFila(fila);
       actualizarMetricas();
+      guardarDatos();
     }
 
     function actualizarMetricas() {
@@ -323,35 +351,105 @@
       }
     }
 
+    function pintarROI(input) {
+      let valor = input.value.replace("%", "").trim();
+      let numero = parseFloat(valor);
+
+      input.classList.remove("roi-verde");
+
+      if (!isNaN(numero) && numero >= 15) {
+        input.classList.add("roi-verde");
+      }
+    }
+
     function activarEventosFila(fila) {
-      const checkbox = fila.querySelector('input[type="checkbox"]');
+      const inputs = fila.querySelectorAll("input");
       const roiInput = fila.querySelector(".roi-input");
 
-      checkbox.addEventListener("change", actualizarMetricas);
+      inputs.forEach(input => {
+        input.addEventListener("input", () => {
+          if (input.classList.contains("roi-input")) {
+            pintarROI(input);
+          }
 
-      roiInput.addEventListener("input", () => {
-        let valor = roiInput.value.replace("%", "").trim();
-        let numero = parseFloat(valor);
+          actualizarMetricas();
+          guardarDatos();
+        });
 
-        roiInput.classList.remove("roi-verde");
-
-        if (!isNaN(numero) && numero >= 15) {
-          roiInput.classList.add("roi-verde");
-        }
+        input.addEventListener("change", () => {
+          actualizarMetricas();
+          guardarDatos();
+        });
       });
 
       roiInput.addEventListener("blur", () => {
         formatearROI(roiInput);
+        guardarDatos();
       });
 
       formatearROI(roiInput);
     }
 
-    document.querySelectorAll("#tablaProductos tr").forEach(fila => {
-      activarEventosFila(fila);
-    });
+    function guardarDatos() {
+      const filas = tablaProductos.querySelectorAll("tr");
+      const productos = [];
 
-    actualizarMetricas();
+      filas.forEach(fila => {
+        const inputs = fila.querySelectorAll("input");
+
+        productos.push({
+          producto: inputs[0].value,
+          cantidad: inputs[1].value,
+          precio: inputs[2].value,
+          roi: inputs[3].value,
+          proveedor: inputs[4].value,
+          pedido: inputs[5].checked
+        });
+      });
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(productos));
+    }
+
+    function cargarDatos() {
+      const datosGuardados = localStorage.getItem(STORAGE_KEY);
+
+      if (!datosGuardados) {
+        inicializarFilasExistentes();
+        guardarDatos();
+        actualizarMetricas();
+        return;
+      }
+
+      const productos = JSON.parse(datosGuardados);
+
+      tablaProductos.innerHTML = "";
+
+      productos.forEach(item => {
+        agregarFila(
+          item.producto,
+          item.cantidad,
+          item.precio,
+          item.roi,
+          item.proveedor,
+          item.pedido
+        );
+      });
+
+      actualizarMetricas();
+    }
+
+    function actualizarDashboard() {
+      cargarDatos();
+      alert("Dashboard actualizado.");
+    }
+
+    function inicializarFilasExistentes() {
+      document.querySelectorAll("#tablaProductos tr").forEach(fila => {
+        activarEventosFila(fila);
+      });
+    }
+
+    cargarDatos();
   </script>
 </body>
 </html>
