@@ -20,7 +20,7 @@
 
     .dashboard {
       width: 95%;
-      max-width: 1200px;
+      max-width: 1250px;
       margin: 40px auto;
       background: #ffffff;
       border-radius: 16px;
@@ -50,7 +50,7 @@
       border: 1px solid #e5e7eb;
       border-radius: 14px;
       padding: 20px 24px;
-      margin-bottom: 24px;
+      margin-bottom: 18px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -107,6 +107,10 @@
       color: #dc2626;
     }
 
+    .status.warning {
+      color: #d97706;
+    }
+
     .table-container {
       width: 100%;
       overflow-x: auto;
@@ -115,7 +119,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 850px;
+      min-width: 1000px;
     }
 
     thead {
@@ -170,11 +174,16 @@
       background: #f0fdf4;
     }
 
+    .fila-pendiente {
+      background: #fffbeb;
+    }
+
     .actions {
       display: flex;
       justify-content: flex-end;
       gap: 12px;
       margin-top: 24px;
+      flex-wrap: wrap;
     }
 
     .btn {
@@ -202,6 +211,38 @@
 
     .btn-refresh:hover {
       background: #374151;
+    }
+
+    .btn-save {
+      background: #16a34a;
+      color: #ffffff;
+    }
+
+    .btn-save:hover {
+      background: #15803d;
+    }
+
+    .btn-row-save {
+      background: #111827;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn-row-save:hover {
+      background: #374151;
+    }
+
+    .empty-message {
+      text-align: center;
+      color: #6b7280;
+      padding: 28px;
+      font-size: 14px;
     }
 
     @media (max-width: 768px) {
@@ -253,7 +294,7 @@
       </div>
     </section>
 
-    <div id="estadoConexion" class="status">Conectando con la base de datos...</div>
+    <div id="estadoConexion" class="status">Conectando con Firebase...</div>
 
     <section class="table-container">
       <table>
@@ -265,6 +306,7 @@
             <th>ROI %</th>
             <th>Proveedor</th>
             <th>Pedido</th>
+            <th>Acción</th>
           </tr>
         </thead>
 
@@ -274,6 +316,7 @@
 
     <section class="actions">
       <button class="btn btn-refresh" onclick="recargarDatos()">Actualizar</button>
+      <button class="btn btn-save" onclick="guardarTodo()">Guardar todo</button>
       <button class="btn btn-add" onclick="agregarPO()">Agregar PO</button>
     </section>
 
@@ -281,14 +324,14 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+
     import {
       getDatabase,
       ref,
       push,
       set,
       update,
-      remove,
-      onValue
+      get
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
     const firebaseConfig = {
@@ -312,58 +355,87 @@
     const productosFaltan = document.getElementById("productosFaltan");
     const estadoConexion = document.getElementById("estadoConexion");
 
-    let productosActuales = {};
-    let cargandoDesdeFirebase = false;
-
     window.agregarPO = agregarPO;
     window.recargarDatos = recargarDatos;
+    window.guardarFila = guardarFila;
+    window.guardarTodo = guardarTodo;
 
-    function agregarPO() {
-      const nuevoProductoRef = push(productosRef);
+    async function agregarPO() {
+      try {
+        const nuevoProductoRef = push(productosRef);
 
-      set(nuevoProductoRef, {
-        producto: "",
-        cantidad: "",
-        precio: "",
-        roi: "",
-        proveedor: "",
-        pedido: false,
-        creadoEn: new Date().toISOString(),
-        actualizadoEn: new Date().toISOString()
-      });
-    }
+        await set(nuevoProductoRef, {
+          producto: "",
+          cantidad: "",
+          precio: "",
+          roi: "",
+          proveedor: "",
+          pedido: false,
+          creadoEn: new Date().toISOString(),
+          actualizadoEn: new Date().toISOString()
+        });
 
-    function recargarDatos() {
-      estadoConexion.textContent = "Actualizando datos...";
-      estadoConexion.className = "status";
-      escucharCambios();
-    }
+        await recargarDatos();
 
-    function escucharCambios() {
-      onValue(productosRef, (snapshot) => {
-        productosActuales = snapshot.val() || {};
-        renderizarTabla(productosActuales);
-
-        estadoConexion.textContent = "Datos sincronizados en tiempo real.";
+        estadoConexion.textContent = "Nueva PO agregada. Llena la fila y guarda los cambios.";
         estadoConexion.className = "status ok";
-      }, (error) => {
-        estadoConexion.textContent = "Error al conectar con la base de datos.";
+      } catch (error) {
+        estadoConexion.textContent = "Error al agregar una nueva PO.";
         estadoConexion.className = "status error";
         console.error(error);
-      });
+      }
+    }
+
+    async function recargarDatos() {
+      if (hayCambiosPendientes()) {
+        const confirmar = confirm("Tienes cambios sin guardar. Si actualizas, se perderán. ¿Quieres actualizar de todos modos?");
+
+        if (!confirmar) {
+          return;
+        }
+      }
+
+      estadoConexion.textContent = "Actualizando datos...";
+      estadoConexion.className = "status";
+
+      try {
+        const snapshot = await get(productosRef);
+        const productos = snapshot.val() || {};
+
+        renderizarTabla(productos);
+
+        estadoConexion.textContent = "Datos actualizados correctamente.";
+        estadoConexion.className = "status ok";
+      } catch (error) {
+        estadoConexion.textContent = "Error al actualizar datos.";
+        estadoConexion.className = "status error";
+        console.error(error);
+      }
     }
 
     function renderizarTabla(productos) {
-      cargandoDesdeFirebase = true;
       tablaProductos.innerHTML = "";
 
       const entradas = Object.entries(productos);
+
+      if (entradas.length === 0) {
+        const filaVacia = document.createElement("tr");
+
+        filaVacia.innerHTML = `
+          <td colspan="7" class="empty-message">
+            Todavía no hay productos. Da clic en “Agregar PO” para crear la primera fila.
+          </td>
+        `;
+
+        tablaProductos.appendChild(filaVacia);
+        actualizarMetricas();
+        return;
+      }
 
       entradas.forEach(([id, data]) => {
         crearFila(id, data);
       });
 
-      cargandoDesdeFirebase = false;
       actualizarMetricas();
     }
 
@@ -395,6 +467,10 @@
         <td class="checkbox-cell">
           <input type="checkbox" class="campo-pedido">
         </td>
+
+        <td>
+          <button class="btn-row-save" onclick="guardarFila('${id}')">Guardar fila</button>
+        </td>
       `;
 
       const inputProducto = fila.querySelector(".campo-producto");
@@ -413,42 +489,114 @@
 
       pintarROI(inputROI);
 
-      inputProducto.addEventListener("input", () => guardarCampo(id, "producto", inputProducto.value));
-      inputCantidad.addEventListener("input", () => guardarCampo(id, "cantidad", inputCantidad.value));
-      inputPrecio.addEventListener("input", () => guardarCampo(id, "precio", inputPrecio.value));
-      inputProveedor.addEventListener("input", () => guardarCampo(id, "proveedor", inputProveedor.value));
+      fila.querySelectorAll("input").forEach(input => {
+        input.addEventListener("input", () => {
+          fila.classList.add("fila-pendiente");
 
-      inputPedido.addEventListener("change", () => {
-        guardarCampo(id, "pedido", inputPedido.checked);
-        actualizarMetricas();
-      });
+          if (input.classList.contains("roi-input")) {
+            pintarROI(input);
+          }
 
-      inputROI.addEventListener("input", () => {
-        pintarROI(inputROI);
-        guardarCampo(id, "roi", inputROI.value);
+          actualizarMetricas();
+          estadoConexion.textContent = "Hay cambios sin guardar.";
+          estadoConexion.className = "status warning";
+        });
+
+        input.addEventListener("change", () => {
+          fila.classList.add("fila-pendiente");
+          actualizarMetricas();
+          estadoConexion.textContent = "Hay cambios sin guardar.";
+          estadoConexion.className = "status warning";
+        });
       });
 
       inputROI.addEventListener("blur", () => {
         formatearROI(inputROI);
-        guardarCampo(id, "roi", inputROI.value);
       });
 
       tablaProductos.appendChild(fila);
     }
 
-    function guardarCampo(id, campo, valor) {
-      if (cargandoDesdeFirebase) return;
+    async function guardarFila(id) {
+      const fila = tablaProductos.querySelector(`tr[data-id="${id}"]`);
 
-      const productoRef = ref(db, `productosPO/${id}`);
+      if (!fila) return;
 
-      update(productoRef, {
-        [campo]: valor,
-        actualizadoEn: new Date().toISOString()
+      const data = obtenerDatosFila(fila);
+
+      try {
+        await update(ref(db, `productosPO/${id}`), {
+          ...data,
+          actualizadoEn: new Date().toISOString()
+        });
+
+        fila.classList.remove("fila-pendiente");
+
+        estadoConexion.textContent = "Fila guardada correctamente.";
+        estadoConexion.className = "status ok";
+      } catch (error) {
+        estadoConexion.textContent = "Error al guardar la fila.";
+        estadoConexion.className = "status error";
+        console.error(error);
+      }
+    }
+
+    async function guardarTodo() {
+      const filas = tablaProductos.querySelectorAll("tr[data-id]");
+
+      if (filas.length === 0) {
+        estadoConexion.textContent = "No hay productos para guardar.";
+        estadoConexion.className = "status warning";
+        return;
+      }
+
+      const promesas = [];
+
+      filas.forEach(fila => {
+        const id = fila.dataset.id;
+        const data = obtenerDatosFila(fila);
+
+        promesas.push(
+          update(ref(db, `productosPO/${id}`), {
+            ...data,
+            actualizadoEn: new Date().toISOString()
+          })
+        );
       });
+
+      try {
+        await Promise.all(promesas);
+
+        filas.forEach(fila => {
+          fila.classList.remove("fila-pendiente");
+        });
+
+        estadoConexion.textContent = "Todos los cambios fueron guardados correctamente.";
+        estadoConexion.className = "status ok";
+      } catch (error) {
+        estadoConexion.textContent = "Error al guardar todos los cambios.";
+        estadoConexion.className = "status error";
+        console.error(error);
+      }
+    }
+
+    function obtenerDatosFila(fila) {
+      const inputROI = fila.querySelector(".campo-roi");
+
+      formatearROI(inputROI);
+
+      return {
+        producto: fila.querySelector(".campo-producto").value,
+        cantidad: fila.querySelector(".campo-cantidad").value,
+        precio: fila.querySelector(".campo-precio").value,
+        roi: inputROI.value,
+        proveedor: fila.querySelector(".campo-proveedor").value,
+        pedido: fila.querySelector(".campo-pedido").checked
+      };
     }
 
     function actualizarMetricas() {
-      const filas = tablaProductos.querySelectorAll("tr");
+      const filas = tablaProductos.querySelectorAll("tr[data-id]");
       const total = filas.length;
       const pedidos = tablaProductos.querySelectorAll(".campo-pedido:checked").length;
       const faltan = total - pedidos;
@@ -486,7 +634,17 @@
       }
     }
 
-    escucharCambios();
+    function hayCambiosPendientes() {
+      return tablaProductos.querySelectorAll(".fila-pendiente").length > 0;
+    }
+
+    setInterval(() => {
+      if (!hayCambiosPendientes()) {
+        recargarDatos();
+      }
+    }, 60 * 60 * 1000);
+
+    recargarDatos();
   </script>
 </body>
 </html>
