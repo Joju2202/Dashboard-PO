@@ -753,10 +753,51 @@
       }
     }
 
-    function aplicarPermisos() {
-      document.querySelectorAll(".admin-only").forEach(elemento => {
-        elemento.style.display = modoAdmin ? "" : "none";
-      });
+      function aplicarPermisos() {
+        document.querySelectorAll(".admin-only").forEach(elemento => {
+          elemento.style.display = modoAdmin ? "inline-block" : "none";
+        });
+      
+        modeBadge.textContent = modoAdmin ? "Modo admin" : "Modo limitado";
+        modeBadge.classList.toggle("admin", modoAdmin);
+      
+        document.querySelectorAll("#tablaProductos tr[data-id]").forEach(fila => {
+          const camposAdmin = [
+            ".campo-fecha",
+            ".campo-producto",
+            ".campo-cantidad",
+            ".campo-precio",
+            ".campo-roi",
+            ".campo-justificacion"
+          ];
+      
+          camposAdmin.forEach(selector => {
+            const campo = fila.querySelector(selector);
+            if (campo) campo.disabled = !modoAdmin;
+          });
+      
+          const campoProveedor = fila.querySelector(".campo-proveedor");
+          const campoPedido = fila.querySelector(".campo-pedido");
+          const campoPagado = fila.querySelector(".campo-pagado");
+          const campoFechaPago = fila.querySelector(".campo-fecha-pago");
+      
+          if (campoProveedor) campoProveedor.disabled = false;
+          if (campoPedido) campoPedido.disabled = false;
+          if (campoPagado) campoPagado.disabled = false;
+          if (campoFechaPago) campoFechaPago.disabled = false;
+      
+          const botonEliminar = fila.querySelector(".btn-row-delete");
+          if (botonEliminar) botonEliminar.style.display = modoAdmin ? "inline-block" : "none";
+        });
+      
+        document.querySelectorAll("#tablaJustificaciones tr[data-id]").forEach(fila => {
+          const inputPrecioOfrecido = fila.querySelector(".campo-precio-ofrecido");
+          const botonGuardar = fila.querySelector(".btn-row-save");
+      
+          if (inputPrecioOfrecido) inputPrecioOfrecido.disabled = !modoAdmin;
+          if (botonGuardar) botonGuardar.style.display = modoAdmin ? "inline-block" : "none";
+        });
+      }
 
       modeBadge.textContent = modoAdmin ? "Modo admin" : "Modo limitado";
       modeBadge.classList.toggle("admin", modoAdmin);
