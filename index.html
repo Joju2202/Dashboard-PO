@@ -20,7 +20,7 @@
 
     .dashboard {
       width: 95%;
-      max-width: 1550px;
+      max-width: 1580px;
       margin: 40px auto;
       background: #ffffff;
       border-radius: 16px;
@@ -29,7 +29,7 @@
     }
 
     .dashboard-header {
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     .dashboard-header h1 {
@@ -42,6 +42,38 @@
       margin: 6px 0 0;
       color: #6b7280;
       font-size: 14px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: #374151;
+      border-radius: 10px;
+      padding: 11px 18px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: #111827;
+      color: #ffffff;
+      border-color: #111827;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
     }
 
     .metric-card {
@@ -122,8 +154,15 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 1720px;
       table-layout: fixed;
+    }
+
+    .po-table {
+      min-width: 1720px;
+    }
+
+    .just-table {
+      min-width: 1520px;
     }
 
     thead {
@@ -142,6 +181,7 @@
       padding: 14px;
       text-align: left;
       border-bottom: 1px solid #e5e7eb;
+      vertical-align: middle;
     }
 
     th {
@@ -150,56 +190,111 @@
       letter-spacing: 0.5px;
     }
 
-    th:nth-child(1),
-    td:nth-child(1) {
+    .po-table th:nth-child(1),
+    .po-table td:nth-child(1) {
       width: 150px;
     }
 
-    th:nth-child(2),
-    td:nth-child(2) {
+    .po-table th:nth-child(2),
+    .po-table td:nth-child(2) {
       width: 380px;
     }
 
-    th:nth-child(3),
-    td:nth-child(3) {
+    .po-table th:nth-child(3),
+    .po-table td:nth-child(3) {
       width: 120px;
     }
 
-    th:nth-child(4),
-    td:nth-child(4) {
+    .po-table th:nth-child(4),
+    .po-table td:nth-child(4) {
       width: 120px;
     }
 
-    th:nth-child(5),
-    td:nth-child(5) {
+    .po-table th:nth-child(5),
+    .po-table td:nth-child(5) {
       width: 125px;
     }
 
-    th:nth-child(6),
-    td:nth-child(6) {
+    .po-table th:nth-child(6),
+    .po-table td:nth-child(6) {
       width: 190px;
     }
 
-    th:nth-child(7),
-    td:nth-child(7) {
+    .po-table th:nth-child(7),
+    .po-table td:nth-child(7) {
       width: 90px;
       text-align: center;
     }
 
-    th:nth-child(8),
-    td:nth-child(8) {
+    .po-table th:nth-child(8),
+    .po-table td:nth-child(8) {
       width: 170px;
       text-align: center;
     }
 
-    th:nth-child(9),
-    td:nth-child(9) {
+    .po-table th:nth-child(9),
+    .po-table td:nth-child(9) {
       width: 260px;
     }
 
-    th:nth-child(10),
-    td:nth-child(10) {
+    .po-table th:nth-child(10),
+    .po-table td:nth-child(10) {
       width: 135px;
+    }
+
+    .just-table th:nth-child(1),
+    .just-table td:nth-child(1) {
+      width: 140px;
+    }
+
+    .just-table th:nth-child(2),
+    .just-table td:nth-child(2) {
+      width: 330px;
+    }
+
+    .just-table th:nth-child(3),
+    .just-table td:nth-child(3) {
+      width: 180px;
+    }
+
+    .just-table th:nth-child(4),
+    .just-table td:nth-child(4) {
+      width: 115px;
+    }
+
+    .just-table th:nth-child(5),
+    .just-table td:nth-child(5) {
+      width: 140px;
+    }
+
+    .just-table th:nth-child(6),
+    .just-table td:nth-child(6) {
+      width: 140px;
+    }
+
+    .just-table th:nth-child(7),
+    .just-table td:nth-child(7) {
+      width: 130px;
+    }
+
+    .just-table th:nth-child(8),
+    .just-table td:nth-child(8) {
+      width: 120px;
+    }
+
+    .just-table th:nth-child(9),
+    .just-table td:nth-child(9) {
+      width: 150px;
+    }
+
+    .just-table th:nth-child(10),
+    .just-table td:nth-child(10) {
+      width: 135px;
+    }
+
+    .just-table th:nth-child(11),
+    .just-table td:nth-child(11) {
+      width: 120px;
     }
 
     td input {
@@ -273,8 +368,28 @@
 
     .roi-input,
     .campo-cantidad,
-    .campo-precio {
-      font-weight: 600;
+    .campo-precio,
+    .campo-precio-ofrecido,
+    .readonly-money,
+    .readonly-percent {
+      font-weight: 700;
+    }
+
+    .readonly-money,
+    .readonly-percent {
+      display: block;
+      color: #111827;
+      font-size: 14px;
+    }
+
+    .ahorro-positivo {
+      color: #16a34a;
+      font-weight: 800;
+    }
+
+    .ahorro-negativo {
+      color: #dc2626;
+      font-weight: 800;
     }
 
     .roi-verde {
@@ -382,6 +497,12 @@
       font-size: 14px;
     }
 
+    .helper-text {
+      color: #6b7280;
+      font-size: 13px;
+      margin-bottom: 14px;
+    }
+
     @media (max-width: 768px) {
       .dashboard {
         width: 98%;
@@ -418,7 +539,12 @@
 
     <section class="dashboard-header">
       <h1>Productos para Pedido</h1>
-      <p>Dashboard compartido para agregar productos, revisar precios, ROI y marcar productos listos para que Vic los pida.</p>
+      <p>Dashboard compartido para agregar productos, revisar precios, ROI, pagos y justificaciones de negociación.</p>
+    </section>
+
+    <section class="tabs">
+      <button class="tab-btn active" id="tabPO" onclick="cambiarTab('po')">PO pedidos</button>
+      <button class="tab-btn" id="tabJustificaciones" onclick="cambiarTab('justificaciones')">Justificaciones</button>
     </section>
 
     <section class="metric-card">
@@ -442,25 +568,56 @@
 
     <div id="estadoConexion" class="status">Conectando con Firebase...</div>
 
-    <section class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>Fecha</th>
-            <th>Producto</th>
-            <th>Cantidad</th>
-            <th>Precio USD</th>
-            <th>ROI %</th>
-            <th>Proveedor</th>
-            <th>Pedido</th>
-            <th>Pagado</th>
-            <th>Justificación</th>
-            <th>Acción</th>
-          </tr>
-        </thead>
+    <section id="contenidoPO" class="tab-content active">
+      <section class="table-container">
+        <table class="po-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Precio USD</th>
+              <th>ROI %</th>
+              <th>Proveedor</th>
+              <th>Pedido</th>
+              <th>Pagado</th>
+              <th>Justificación</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
 
-        <tbody id="tablaProductos"></tbody>
-      </table>
+          <tbody id="tablaProductos"></tbody>
+        </table>
+      </section>
+    </section>
+
+    <section id="contenidoJustificaciones" class="tab-content">
+      <p class="helper-text">
+        Esta pestaña toma automáticamente la fecha, producto, proveedor, cantidad, precio negociado y link de justificación de la pestaña “PO pedidos”.
+        Aquí solo llena el precio ofrecido por el proveedor.
+      </p>
+
+      <section class="table-container">
+        <table class="just-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Producto</th>
+              <th>Proveedor</th>
+              <th>Cantidad</th>
+              <th>Precio ofrecido</th>
+              <th>Precio negociado</th>
+              <th>Ahorro USD</th>
+              <th>Ahorro %</th>
+              <th>Ahorro total</th>
+              <th>Evidencia</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+
+          <tbody id="tablaJustificaciones"></tbody>
+        </table>
+      </section>
     </section>
 
     <section class="actions">
@@ -501,20 +658,42 @@
     const productosRef = ref(db, "productosPO");
 
     const tablaProductos = document.getElementById("tablaProductos");
+    const tablaJustificaciones = document.getElementById("tablaJustificaciones");
     const totalProductos = document.getElementById("totalProductos");
     const productosPedidos = document.getElementById("productosPedidos");
     const productosFaltan = document.getElementById("productosFaltan");
     const estadoConexion = document.getElementById("estadoConexion");
 
+    let productosCache = {};
+    let tabActiva = "po";
+
     window.agregarPO = agregarPO;
     window.recargarDatos = recargarDatos;
     window.guardarFila = guardarFila;
+    window.guardarJustificacion = guardarJustificacion;
     window.guardarTodo = guardarTodo;
     window.exportarExcel = exportarExcel;
     window.eliminarFila = eliminarFila;
     window.abrirJustificacion = abrirJustificacion;
+    window.cambiarTab = cambiarTab;
+
+    function cambiarTab(tab) {
+      tabActiva = tab;
+
+      document.getElementById("tabPO").classList.toggle("active", tab === "po");
+      document.getElementById("tabJustificaciones").classList.toggle("active", tab === "justificaciones");
+
+      document.getElementById("contenidoPO").classList.toggle("active", tab === "po");
+      document.getElementById("contenidoJustificaciones").classList.toggle("active", tab === "justificaciones");
+    }
 
     async function agregarPO() {
+      if (hayCambiosPendientes()) {
+        const confirmar = confirm("Tienes cambios sin guardar. Si agregas una nueva PO se actualizará la tabla y podrías perder cambios no guardados. ¿Quieres continuar?");
+
+        if (!confirmar) return;
+      }
+
       try {
         const nuevoProductoRef = push(productosRef);
 
@@ -523,6 +702,7 @@
           producto: "",
           cantidad: "",
           precio: "",
+          precioOfrecido: "",
           roi: "",
           proveedor: "",
           pedido: false,
@@ -533,10 +713,12 @@
           actualizadoEn: new Date().toISOString()
         });
 
-        await recargarDatos();
+        await recargarDatos(true);
 
         estadoConexion.textContent = "Nueva PO agregada hasta arriba. Llena la fila y guarda los cambios.";
         estadoConexion.className = "status ok";
+
+        cambiarTab("po");
 
         const primeraFila = tablaProductos.querySelector("tr[data-id]");
         if (primeraFila) {
@@ -551,13 +733,11 @@
       }
     }
 
-    async function recargarDatos() {
-      if (hayCambiosPendientes()) {
+    async function recargarDatos(forzar = false) {
+      if (!forzar && hayCambiosPendientes()) {
         const confirmar = confirm("Tienes cambios sin guardar. Si actualizas, se perderán. ¿Quieres actualizar de todos modos?");
 
-        if (!confirmar) {
-          return;
-        }
+        if (!confirmar) return;
       }
 
       estadoConexion.textContent = "Actualizando datos...";
@@ -565,9 +745,10 @@
 
       try {
         const snapshot = await get(productosRef);
-        const productos = snapshot.val() || {};
+        productosCache = snapshot.val() || {};
 
-        renderizarTabla(productos);
+        renderizarTabla(productosCache);
+        renderizarJustificaciones(productosCache);
 
         estadoConexion.textContent = "Datos actualizados correctamente.";
         estadoConexion.className = "status ok";
@@ -578,14 +759,18 @@
       }
     }
 
-    function renderizarTabla(productos) {
-      tablaProductos.innerHTML = "";
-
-      const entradas = Object.entries(productos).sort((a, b) => {
+    function entradasOrdenadas(productos) {
+      return Object.entries(productos).sort((a, b) => {
         const creadoA = a[1].creadoEn || "";
         const creadoB = b[1].creadoEn || "";
         return creadoB.localeCompare(creadoA);
       });
+    }
+
+    function renderizarTabla(productos) {
+      tablaProductos.innerHTML = "";
+
+      const entradas = entradasOrdenadas(productos);
 
       if (entradas.length === 0) {
         const filaVacia = document.createElement("tr");
@@ -606,6 +791,31 @@
       });
 
       actualizarMetricas();
+    }
+
+    function renderizarJustificaciones(productos) {
+      tablaJustificaciones.innerHTML = "";
+
+      const entradas = entradasOrdenadas(productos).filter(([id, data]) => {
+        return String(data.justificacion || "").trim() !== "";
+      });
+
+      if (entradas.length === 0) {
+        const filaVacia = document.createElement("tr");
+
+        filaVacia.innerHTML = `
+          <td colspan="11" class="empty-message">
+            Todavía no hay justificaciones. Pega un link en la columna “Justificación” de la pestaña PO pedidos y guarda la fila.
+          </td>
+        `;
+
+        tablaJustificaciones.appendChild(filaVacia);
+        return;
+      }
+
+      entradas.forEach(([id, data]) => {
+        crearFilaJustificacion(id, data);
+      });
     }
 
     function crearFila(id, data) {
@@ -730,6 +940,77 @@
       tablaProductos.appendChild(fila);
     }
 
+    function crearFilaJustificacion(id, data) {
+      const fila = document.createElement("tr");
+      fila.dataset.id = id;
+
+      fila.innerHTML = `
+        <td>
+          <span>${data.fecha || "-"}</span>
+        </td>
+
+        <td>
+          <span>${escaparHTML(data.producto || "-")}</span>
+        </td>
+
+        <td>
+          <span>${escaparHTML(data.proveedor || "-")}</span>
+        </td>
+
+        <td>
+          <span class="readonly-money cantidad-ref">${data.cantidad || "-"}</span>
+        </td>
+
+        <td>
+          <input type="text" class="campo-precio-ofrecido" placeholder="$0">
+        </td>
+
+        <td>
+          <span class="readonly-money precio-negociado">${data.precio || "-"}</span>
+        </td>
+
+        <td>
+          <span class="readonly-money ahorro-unitario">-</span>
+        </td>
+
+        <td>
+          <span class="readonly-percent ahorro-porcentaje">-</span>
+        </td>
+
+        <td>
+          <span class="readonly-money ahorro-total">-</span>
+        </td>
+
+        <td>
+          <button class="btn-link" onclick="abrirJustificacion('${id}')">Ver evidencia</button>
+        </td>
+
+        <td>
+          <button class="btn-row-save" onclick="guardarJustificacion('${id}')">Guardar</button>
+        </td>
+      `;
+
+      const inputPrecioOfrecido = fila.querySelector(".campo-precio-ofrecido");
+      inputPrecioOfrecido.value = data.precioOfrecido || "";
+
+      formatearPrecio(inputPrecioOfrecido);
+      calcularYMostrarAhorro(fila);
+
+      inputPrecioOfrecido.addEventListener("input", () => {
+        fila.classList.add("fila-pendiente");
+        calcularYMostrarAhorro(fila);
+        estadoConexion.textContent = "Hay cambios sin guardar.";
+        estadoConexion.className = "status warning";
+      });
+
+      inputPrecioOfrecido.addEventListener("blur", () => {
+        formatearPrecio(inputPrecioOfrecido);
+        calcularYMostrarAhorro(fila);
+      });
+
+      tablaJustificaciones.appendChild(fila);
+    }
+
     async function guardarFila(id) {
       const fila = tablaProductos.querySelector(`tr[data-id="${id}"]`);
 
@@ -743,7 +1024,14 @@
           actualizadoEn: new Date().toISOString()
         });
 
+        productosCache[id] = {
+          ...(productosCache[id] || {}),
+          ...data,
+          actualizadoEn: new Date().toISOString()
+        };
+
         fila.classList.remove("fila-pendiente");
+        renderizarJustificaciones(productosCache);
 
         estadoConexion.textContent = "Fila guardada correctamente.";
         estadoConexion.className = "status ok";
@@ -754,17 +1042,49 @@
       }
     }
 
+    async function guardarJustificacion(id) {
+      const fila = tablaJustificaciones.querySelector(`tr[data-id="${id}"]`);
+
+      if (!fila) return;
+
+      const inputPrecioOfrecido = fila.querySelector(".campo-precio-ofrecido");
+      formatearPrecio(inputPrecioOfrecido);
+
+      const precioOfrecido = inputPrecioOfrecido.value;
+
+      try {
+        await update(ref(db, `productosPO/${id}`), {
+          precioOfrecido,
+          actualizadoEn: new Date().toISOString()
+        });
+
+        productosCache[id] = {
+          ...(productosCache[id] || {}),
+          precioOfrecido,
+          actualizadoEn: new Date().toISOString()
+        };
+
+        fila.classList.remove("fila-pendiente");
+        calcularYMostrarAhorro(fila);
+
+        estadoConexion.textContent = "Precio ofrecido guardado correctamente.";
+        estadoConexion.className = "status ok";
+      } catch (error) {
+        estadoConexion.textContent = "Error al guardar la justificación.";
+        estadoConexion.className = "status error";
+        console.error(error);
+      }
+    }
+
     async function eliminarFila(id) {
       const confirmar = confirm("¿Seguro que quieres eliminar esta fila? Esta acción no se puede deshacer.");
 
-      if (!confirmar) {
-        return;
-      }
+      if (!confirmar) return;
 
       try {
         await remove(ref(db, `productosPO/${id}`));
 
-        await recargarDatos();
+        await recargarDatos(true);
 
         estadoConexion.textContent = "Fila eliminada correctamente.";
         estadoConexion.className = "status ok";
@@ -776,9 +1096,10 @@
     }
 
     async function guardarTodo() {
-      const filas = tablaProductos.querySelectorAll("tr[data-id]");
+      const filasPO = tablaProductos.querySelectorAll("tr[data-id]");
+      const filasJust = tablaJustificaciones.querySelectorAll("tr[data-id]");
 
-      if (filas.length === 0) {
+      if (filasPO.length === 0 && filasJust.length === 0) {
         estadoConexion.textContent = "No hay productos para guardar.";
         estadoConexion.className = "status warning";
         return;
@@ -786,7 +1107,7 @@
 
       const promesas = [];
 
-      filas.forEach(fila => {
+      filasPO.forEach(fila => {
         const id = fila.dataset.id;
         const data = obtenerDatosFila(fila);
 
@@ -796,14 +1117,44 @@
             actualizadoEn: new Date().toISOString()
           })
         );
+
+        productosCache[id] = {
+          ...(productosCache[id] || {}),
+          ...data
+        };
+      });
+
+      filasJust.forEach(fila => {
+        const id = fila.dataset.id;
+        const inputPrecioOfrecido = fila.querySelector(".campo-precio-ofrecido");
+
+        if (!inputPrecioOfrecido) return;
+
+        formatearPrecio(inputPrecioOfrecido);
+
+        const precioOfrecido = inputPrecioOfrecido.value;
+
+        promesas.push(
+          update(ref(db, `productosPO/${id}`), {
+            precioOfrecido,
+            actualizadoEn: new Date().toISOString()
+          })
+        );
+
+        productosCache[id] = {
+          ...(productosCache[id] || {}),
+          precioOfrecido
+        };
       });
 
       try {
         await Promise.all(promesas);
 
-        filas.forEach(fila => {
+        document.querySelectorAll(".fila-pendiente").forEach(fila => {
           fila.classList.remove("fila-pendiente");
         });
+
+        renderizarJustificaciones(productosCache);
 
         estadoConexion.textContent = "Todos los cambios fueron guardados correctamente.";
         estadoConexion.className = "status ok";
@@ -838,11 +1189,17 @@
     }
 
     function abrirJustificacion(id) {
-      const fila = tablaProductos.querySelector(`tr[data-id="${id}"]`);
+      const filaPO = tablaProductos.querySelector(`tr[data-id="${id}"]`);
+      let link = "";
 
-      if (!fila) return;
+      if (filaPO) {
+        const input = filaPO.querySelector(".campo-justificacion");
+        if (input) link = input.value.trim();
+      }
 
-      let link = fila.querySelector(".campo-justificacion").value.trim();
+      if (!link && productosCache[id]) {
+        link = String(productosCache[id].justificacion || "").trim();
+      }
 
       if (link === "") {
         alert("Primero pega un link de Drive en la columna Justificación.");
@@ -931,14 +1288,88 @@
       }
     }
 
+    function calcularAhorro(data) {
+      const precioOfrecido = obtenerNumero(data.precioOfrecido);
+      const precioNegociado = obtenerNumero(data.precio);
+      const cantidad = obtenerNumero(data.cantidad);
+
+      if (isNaN(precioOfrecido) || isNaN(precioNegociado)) {
+        return {
+          ahorroUnitario: null,
+          ahorroPorcentaje: null,
+          ahorroTotal: null
+        };
+      }
+
+      const ahorroUnitario = precioOfrecido - precioNegociado;
+      const ahorroPorcentaje = precioOfrecido !== 0 ? (ahorroUnitario / precioOfrecido) * 100 : 0;
+      const ahorroTotal = !isNaN(cantidad) ? ahorroUnitario * cantidad : ahorroUnitario;
+
+      return {
+        ahorroUnitario,
+        ahorroPorcentaje,
+        ahorroTotal
+      };
+    }
+
+    function calcularYMostrarAhorro(fila) {
+      const precioOfrecido = fila.querySelector(".campo-precio-ofrecido")?.value || "";
+      const precioNegociado = fila.querySelector(".precio-negociado")?.textContent || "";
+      const cantidad = fila.querySelector(".cantidad-ref")?.textContent || "";
+
+      const resultado = calcularAhorro({
+        precioOfrecido,
+        precio: precioNegociado,
+        cantidad
+      });
+
+      const ahorroUnitarioEl = fila.querySelector(".ahorro-unitario");
+      const ahorroPorcentajeEl = fila.querySelector(".ahorro-porcentaje");
+      const ahorroTotalEl = fila.querySelector(".ahorro-total");
+
+      if (resultado.ahorroUnitario === null) {
+        ahorroUnitarioEl.textContent = "-";
+        ahorroPorcentajeEl.textContent = "-";
+        ahorroTotalEl.textContent = "-";
+        return;
+      }
+
+      ahorroUnitarioEl.textContent = formatearMoneda(resultado.ahorroUnitario);
+      ahorroPorcentajeEl.textContent = `${resultado.ahorroPorcentaje.toFixed(2)}%`;
+      ahorroTotalEl.textContent = formatearMoneda(resultado.ahorroTotal);
+
+      [ahorroUnitarioEl, ahorroPorcentajeEl, ahorroTotalEl].forEach(el => {
+        el.classList.remove("ahorro-positivo", "ahorro-negativo");
+
+        if (resultado.ahorroUnitario >= 0) {
+          el.classList.add("ahorro-positivo");
+        } else {
+          el.classList.add("ahorro-negativo");
+        }
+      });
+    }
+
+    function formatearMoneda(numero) {
+      if (numero === null || isNaN(numero)) return "-";
+
+      const valor = Math.round(numero * 100) / 100;
+
+      if (Number.isInteger(valor)) {
+        return `$${valor}`;
+      }
+
+      return `$${valor.toFixed(2)}`;
+    }
+
     function hayCambiosPendientes() {
-      return tablaProductos.querySelectorAll(".fila-pendiente").length > 0;
+      return document.querySelectorAll(".fila-pendiente").length > 0;
     }
 
     function exportarExcel() {
-      const filas = tablaProductos.querySelectorAll("tr[data-id]");
+      const productos = construirProductosParaExportar();
+      const entradas = entradasOrdenadas(productos);
 
-      if (filas.length === 0) {
+      if (entradas.length === 0) {
         estadoConexion.textContent = "No hay productos para exportar.";
         estadoConexion.className = "status warning";
         return;
@@ -948,7 +1379,11 @@
         "Fecha",
         "Producto",
         "Cantidad",
-        "Precio USD",
+        "Precio ofrecido USD",
+        "Precio negociado USD",
+        "Ahorro unitario USD",
+        "Ahorro %",
+        "Ahorro total USD",
         "ROI %",
         "Proveedor",
         "Pedido",
@@ -959,20 +1394,24 @@
 
       const datos = [];
 
-      filas.forEach(fila => {
-        const data = obtenerDatosFila(fila);
+      entradas.forEach(([id, data]) => {
+        const ahorro = calcularAhorro(data);
 
         datos.push([
-          data.fecha,
-          data.producto,
-          data.cantidad,
-          data.precio,
-          data.roi,
-          data.proveedor,
+          data.fecha || "",
+          data.producto || "",
+          data.cantidad || "",
+          data.precioOfrecido || "",
+          data.precio || "",
+          ahorro.ahorroUnitario === null ? "" : formatearMoneda(ahorro.ahorroUnitario),
+          ahorro.ahorroPorcentaje === null ? "" : `${ahorro.ahorroPorcentaje.toFixed(2)}%`,
+          ahorro.ahorroTotal === null ? "" : formatearMoneda(ahorro.ahorroTotal),
+          data.roi || "",
+          data.proveedor || "",
           data.pedido ? "Sí" : "No",
           data.pagado ? "Sí" : "No",
-          data.fechaPago,
-          data.justificacion
+          data.fechaPago || "",
+          data.justificacion || ""
         ]);
       });
 
@@ -1004,6 +1443,34 @@
       estadoConexion.className = "status ok";
     }
 
+    function construirProductosParaExportar() {
+      const productos = JSON.parse(JSON.stringify(productosCache || {}));
+
+      tablaProductos.querySelectorAll("tr[data-id]").forEach(fila => {
+        const id = fila.dataset.id;
+        productos[id] = {
+          ...(productos[id] || {}),
+          ...obtenerDatosFila(fila)
+        };
+      });
+
+      tablaJustificaciones.querySelectorAll("tr[data-id]").forEach(fila => {
+        const id = fila.dataset.id;
+        const inputPrecioOfrecido = fila.querySelector(".campo-precio-ofrecido");
+
+        if (!inputPrecioOfrecido) return;
+
+        formatearPrecio(inputPrecioOfrecido);
+
+        productos[id] = {
+          ...(productos[id] || {}),
+          precioOfrecido: inputPrecioOfrecido.value
+        };
+      });
+
+      return productos;
+    }
+
     function escaparCSV(valor) {
       const texto = String(valor ?? "");
 
@@ -1014,13 +1481,22 @@
       return texto;
     }
 
+    function escaparHTML(texto) {
+      return String(texto)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
     setInterval(() => {
       if (!hayCambiosPendientes()) {
-        recargarDatos();
+        recargarDatos(true);
       }
     }, 60 * 60 * 1000);
 
-    recargarDatos();
+    recargarDatos(true);
   </script>
 </body>
 </html>
