@@ -20,7 +20,7 @@
 
     .dashboard {
       width: 95%;
-      max-width: 1500px;
+      max-width: 1550px;
       margin: 40px auto;
       background: #ffffff;
       border-radius: 16px;
@@ -122,7 +122,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 1450px;
+      min-width: 1720px;
       table-layout: fixed;
     }
 
@@ -157,7 +157,7 @@
 
     th:nth-child(2),
     td:nth-child(2) {
-      width: 360px;
+      width: 380px;
     }
 
     th:nth-child(3),
@@ -194,6 +194,11 @@
 
     th:nth-child(9),
     td:nth-child(9) {
+      width: 260px;
+    }
+
+    th:nth-child(10),
+    td:nth-child(10) {
       width: 135px;
     }
 
@@ -239,6 +244,31 @@
       width: 140px;
       font-size: 13px;
       padding: 8px;
+    }
+
+    .justificacion-box {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .justificacion-box input {
+      font-size: 13px;
+    }
+
+    .btn-link {
+      border: none;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #2563eb;
+      color: #ffffff;
+    }
+
+    .btn-link:hover {
+      background: #1d4ed8;
     }
 
     .roi-input,
@@ -424,6 +454,7 @@
             <th>Proveedor</th>
             <th>Pedido</th>
             <th>Pagado</th>
+            <th>Justificación</th>
             <th>Acción</th>
           </tr>
         </thead>
@@ -481,6 +512,7 @@
     window.guardarTodo = guardarTodo;
     window.exportarExcel = exportarExcel;
     window.eliminarFila = eliminarFila;
+    window.abrirJustificacion = abrirJustificacion;
 
     async function agregarPO() {
       try {
@@ -496,6 +528,7 @@
           pedido: false,
           pagado: false,
           fechaPago: "",
+          justificacion: "",
           creadoEn: new Date().toISOString(),
           actualizadoEn: new Date().toISOString()
         });
@@ -558,7 +591,7 @@
         const filaVacia = document.createElement("tr");
 
         filaVacia.innerHTML = `
-          <td colspan="9" class="empty-message">
+          <td colspan="10" class="empty-message">
             Todavía no hay productos. Da clic en “Agregar PO” para crear la primera fila.
           </td>
         `;
@@ -616,6 +649,13 @@
         </td>
 
         <td>
+          <div class="justificacion-box">
+            <input type="url" class="campo-justificacion" placeholder="Pega link de Drive">
+            <button class="btn-link" onclick="abrirJustificacion('${id}')">Ver evidencia</button>
+          </div>
+        </td>
+
+        <td>
           <div class="action-buttons">
             <button class="btn-row-save" onclick="guardarFila('${id}')">Guardar fila</button>
             <button class="btn-row-delete" onclick="eliminarFila('${id}')">Eliminar</button>
@@ -632,6 +672,7 @@
       const inputPedido = fila.querySelector(".campo-pedido");
       const inputPagado = fila.querySelector(".campo-pagado");
       const inputFechaPago = fila.querySelector(".campo-fecha-pago");
+      const inputJustificacion = fila.querySelector(".campo-justificacion");
 
       inputFecha.value = data.fecha || "";
       inputProducto.value = data.producto || "";
@@ -642,6 +683,7 @@
       inputPedido.checked = data.pedido || false;
       inputPagado.checked = data.pagado || false;
       inputFechaPago.value = data.fechaPago || "";
+      inputJustificacion.value = data.justificacion || "";
 
       formatearCantidad(inputCantidad);
       formatearPrecio(inputPrecio);
@@ -790,8 +832,28 @@
         proveedor: fila.querySelector(".campo-proveedor").value,
         pedido: fila.querySelector(".campo-pedido").checked,
         pagado: fila.querySelector(".campo-pagado").checked,
-        fechaPago: fila.querySelector(".campo-fecha-pago").value
+        fechaPago: fila.querySelector(".campo-fecha-pago").value,
+        justificacion: fila.querySelector(".campo-justificacion").value
       };
+    }
+
+    function abrirJustificacion(id) {
+      const fila = tablaProductos.querySelector(`tr[data-id="${id}"]`);
+
+      if (!fila) return;
+
+      let link = fila.querySelector(".campo-justificacion").value.trim();
+
+      if (link === "") {
+        alert("Primero pega un link de Drive en la columna Justificación.");
+        return;
+      }
+
+      if (!link.startsWith("http://") && !link.startsWith("https://")) {
+        link = "https://" + link;
+      }
+
+      window.open(link, "_blank", "noopener,noreferrer");
     }
 
     function actualizarMetricas() {
@@ -891,7 +953,8 @@
         "Proveedor",
         "Pedido",
         "Pagado",
-        "Fecha de pago"
+        "Fecha de pago",
+        "Justificación"
       ];
 
       const datos = [];
@@ -908,7 +971,8 @@
           data.proveedor,
           data.pedido ? "Sí" : "No",
           data.pagado ? "Sí" : "No",
-          data.fechaPago
+          data.fechaPago,
+          data.justificacion
         ]);
       });
 
