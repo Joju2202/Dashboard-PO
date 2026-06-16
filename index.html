@@ -49,6 +49,7 @@
       gap: 10px;
       margin-bottom: 22px;
       flex-wrap: wrap;
+      align-items: center;
     }
 
     .tab-btn {
@@ -66,6 +67,31 @@
       background: #111827;
       color: #ffffff;
       border-color: #111827;
+    }
+
+    .admin-btn {
+      background: #7c3aed;
+      color: #ffffff;
+      border-color: #7c3aed;
+      margin-left: auto;
+    }
+
+    .admin-btn:hover {
+      background: #6d28d9;
+    }
+
+    .mode-badge {
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .mode-badge.admin {
+      background: #dcfce7;
+      color: #166534;
     }
 
     .tab-content {
@@ -312,6 +338,12 @@
       box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
     }
 
+    input:disabled {
+      background: #f3f4f6;
+      color: #6b7280;
+      cursor: not-allowed;
+    }
+
     .checkbox-cell {
       text-align: center;
     }
@@ -490,6 +522,10 @@
       background: #b91c1c;
     }
 
+    .admin-only {
+      display: none;
+    }
+
     .empty-message {
       text-align: center;
       color: #6b7280;
@@ -530,6 +566,10 @@
       .table-container {
         max-height: 520px;
       }
+
+      .admin-btn {
+        margin-left: 0;
+      }
     }
   </style>
 </head>
@@ -544,7 +584,9 @@
 
     <section class="tabs">
       <button class="tab-btn active" id="tabPO" onclick="cambiarTab('po')">PO pedidos</button>
-      <button class="tab-btn" id="tabJustificaciones" onclick="cambiarTab('justificaciones')">Justificaciones</button>
+      <button class="tab-btn" id="tabJustificaciones" onclick="intentarAbrirJustificaciones()">Justificaciones</button>
+      <button class="tab-btn admin-btn" onclick="activarModoAdmin()">Modo admin</button>
+      <span class="mode-badge" id="modeBadge">Modo limitado</span>
     </section>
 
     <section class="metric-card">
@@ -594,7 +636,7 @@
     <section id="contenidoJustificaciones" class="tab-content">
       <p class="helper-text">
         Esta pestaña toma automáticamente la fecha, producto, proveedor, cantidad, precio negociado y link de justificación de la pestaña “PO pedidos”.
-        Aquí solo llena el precio ofrecido por el proveedor.
+        Aquí solo se llena el precio ofrecido por el proveedor.
       </p>
 
       <section class="table-container">
@@ -622,9 +664,9 @@
 
     <section class="actions">
       <button class="btn btn-refresh" onclick="recargarDatos()">Actualizar</button>
-      <button class="btn btn-save" onclick="guardarTodo()">Guardar todo</button>
-      <button class="btn btn-export" onclick="exportarExcel()">Exportar Excel</button>
-      <button class="btn btn-add" onclick="agregarPO()">Agregar PO</button>
+      <button class="btn btn-save admin-only" onclick="guardarTodo()">Guardar todo</button>
+      <button class="btn btn-export admin-only" onclick="exportarExcel()">Exportar Excel</button>
+      <button class="btn btn-add admin-only" onclick="agregarPO()">Agregar PO</button>
     </section>
 
   </main>
@@ -641,6 +683,8 @@
       get,
       remove
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
+    const ADMIN_PASSWORD = "iq2026";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCeX3qJ-XsG70nJuknbPO553dIgo4lxfYQ",
@@ -663,9 +707,11 @@
     const productosPedidos = document.getElementById("productosPedidos");
     const productosFaltan = document.getElementById("productosFaltan");
     const estadoConexion = document.getElementById("estadoConexion");
+    const modeBadge = document.getElementById("modeBadge");
 
     let productosCache = {};
     let tabActiva = "po";
+    let modoAdmin = sessionStorage.getItem("dashboardPO_admin") === "true";
 
     window.agregarPO = agregarPO;
     window.recargarDatos = recargarDatos;
@@ -676,8 +722,98 @@
     window.eliminarFila = eliminarFila;
     window.abrirJustificacion = abrirJustificacion;
     window.cambiarTab = cambiarTab;
+    window.intentarAbrirJustificaciones = intentarAbrirJustificaciones;
+    window.activarModoAdmin = activarModoAdmin;
+
+    function pedirPassword() {
+      const password = prompt("Ingresa la contraseña de administrador:");
+
+      if (password === ADMIN_PASSWORD) {
+        modoAdmin = true;
+        sessionStorage.setItem("dashboardPO_admin", "true");
+        aplicarPermisos();
+        return true;
+      }
+
+      alert("Contraseña incorrecta.");
+      return false;
+    }
+
+    function activarModoAdmin() {
+      if (modoAdmin) {
+        alert("Ya estás en modo administrador.");
+        return;
+      }
+
+      const autorizado = pedirPassword();
+
+      if (autorizado) {
+        estadoConexion.textContent = "Modo administrador activado.";
+        estadoConexion.className = "status ok";
+      }
+    }
+
+    function aplicarPermisos() {
+      document.querySelectorAll(".admin-only").forEach(elemento => {
+        elemento.style.display = modoAdmin ? "" : "none";
+      });
+
+      modeBadge.textContent = modoAdmin ? "Modo admin" : "Modo limitado";
+      modeBadge.classList.toggle("admin", modoAdmin);
+
+      document.querySelectorAll("#tablaProductos tr[data-id]").forEach(fila => {
+        const camposAdmin = [
+          ".campo-fecha",
+          ".campo-producto",
+          ".campo-cantidad",
+          ".campo-precio",
+          ".campo-roi",
+          ".campo-justificacion"
+        ];
+
+        camposAdmin.forEach(selector => {
+          const campo = fila.querySelector(selector);
+          if (campo) campo.disabled = !modoAdmin;
+        });
+
+        const campoProveedor = fila.querySelector(".campo-proveedor");
+        const campoPedido = fila.querySelector(".campo-pedido");
+        const campoPagado = fila.querySelector(".campo-pagado");
+        const campoFechaPago = fila.querySelector(".campo-fecha-pago");
+
+        if (campoProveedor) campoProveedor.disabled = false;
+        if (campoPedido) campoPedido.disabled = false;
+        if (campoPagado) campoPagado.disabled = false;
+        if (campoFechaPago) campoFechaPago.disabled = false;
+
+        const botonEliminar = fila.querySelector(".btn-row-delete");
+        if (botonEliminar) botonEliminar.style.display = modoAdmin ? "" : "none";
+      });
+
+      document.querySelectorAll("#tablaJustificaciones tr[data-id]").forEach(fila => {
+        const inputPrecioOfrecido = fila.querySelector(".campo-precio-ofrecido");
+        const botonGuardar = fila.querySelector(".btn-row-save");
+
+        if (inputPrecioOfrecido) inputPrecioOfrecido.disabled = !modoAdmin;
+        if (botonGuardar) botonGuardar.style.display = modoAdmin ? "" : "none";
+      });
+    }
+
+    function intentarAbrirJustificaciones() {
+      if (!modoAdmin) {
+        const autorizado = pedirPassword();
+        if (!autorizado) return;
+      }
+
+      cambiarTab("justificaciones");
+    }
 
     function cambiarTab(tab) {
+      if (tab === "justificaciones" && !modoAdmin) {
+        intentarAbrirJustificaciones();
+        return;
+      }
+
       tabActiva = tab;
 
       document.getElementById("tabPO").classList.toggle("active", tab === "po");
@@ -688,9 +824,13 @@
     }
 
     async function agregarPO() {
+      if (!modoAdmin) {
+        alert("Solo el administrador puede agregar PO.");
+        return;
+      }
+
       if (hayCambiosPendientes()) {
         const confirmar = confirm("Tienes cambios sin guardar. Si agregas una nueva PO se actualizará la tabla y podrías perder cambios no guardados. ¿Quieres continuar?");
-
         if (!confirmar) return;
       }
 
@@ -736,7 +876,6 @@
     async function recargarDatos(forzar = false) {
       if (!forzar && hayCambiosPendientes()) {
         const confirmar = confirm("Tienes cambios sin guardar. Si actualizas, se perderán. ¿Quieres actualizar de todos modos?");
-
         if (!confirmar) return;
       }
 
@@ -749,6 +888,7 @@
 
         renderizarTabla(productosCache);
         renderizarJustificaciones(productosCache);
+        aplicarPermisos();
 
         estadoConexion.textContent = "Datos actualizados correctamente.";
         estadoConexion.className = "status ok";
@@ -777,7 +917,7 @@
 
         filaVacia.innerHTML = `
           <td colspan="10" class="empty-message">
-            Todavía no hay productos. Da clic en “Agregar PO” para crear la primera fila.
+            Todavía no hay productos. En modo administrador da clic en “Agregar PO” para crear la primera fila.
           </td>
         `;
 
@@ -1016,7 +1156,7 @@
 
       if (!fila) return;
 
-      const data = obtenerDatosFila(fila);
+      const data = modoAdmin ? obtenerDatosFilaCompleta(fila) : obtenerDatosFilaLimitada(fila);
 
       try {
         await update(ref(db, `productosPO/${id}`), {
@@ -1032,6 +1172,7 @@
 
         fila.classList.remove("fila-pendiente");
         renderizarJustificaciones(productosCache);
+        aplicarPermisos();
 
         estadoConexion.textContent = "Fila guardada correctamente.";
         estadoConexion.className = "status ok";
@@ -1043,6 +1184,11 @@
     }
 
     async function guardarJustificacion(id) {
+      if (!modoAdmin) {
+        alert("Solo el administrador puede editar justificaciones.");
+        return;
+      }
+
       const fila = tablaJustificaciones.querySelector(`tr[data-id="${id}"]`);
 
       if (!fila) return;
@@ -1077,6 +1223,11 @@
     }
 
     async function eliminarFila(id) {
+      if (!modoAdmin) {
+        alert("Solo el administrador puede eliminar filas.");
+        return;
+      }
+
       const confirmar = confirm("¿Seguro que quieres eliminar esta fila? Esta acción no se puede deshacer.");
 
       if (!confirmar) return;
@@ -1096,6 +1247,11 @@
     }
 
     async function guardarTodo() {
+      if (!modoAdmin) {
+        alert("Solo el administrador puede usar Guardar todo.");
+        return;
+      }
+
       const filasPO = tablaProductos.querySelectorAll("tr[data-id]");
       const filasJust = tablaJustificaciones.querySelectorAll("tr[data-id]");
 
@@ -1109,7 +1265,7 @@
 
       filasPO.forEach(fila => {
         const id = fila.dataset.id;
-        const data = obtenerDatosFila(fila);
+        const data = obtenerDatosFilaCompleta(fila);
 
         promesas.push(
           update(ref(db, `productosPO/${id}`), {
@@ -1155,6 +1311,7 @@
         });
 
         renderizarJustificaciones(productosCache);
+        aplicarPermisos();
 
         estadoConexion.textContent = "Todos los cambios fueron guardados correctamente.";
         estadoConexion.className = "status ok";
@@ -1165,7 +1322,7 @@
       }
     }
 
-    function obtenerDatosFila(fila) {
+    function obtenerDatosFilaCompleta(fila) {
       const inputCantidad = fila.querySelector(".campo-cantidad");
       const inputPrecio = fila.querySelector(".campo-precio");
       const inputROI = fila.querySelector(".campo-roi");
@@ -1188,6 +1345,15 @@
       };
     }
 
+    function obtenerDatosFilaLimitada(fila) {
+      return {
+        proveedor: fila.querySelector(".campo-proveedor").value,
+        pedido: fila.querySelector(".campo-pedido").checked,
+        pagado: fila.querySelector(".campo-pagado").checked,
+        fechaPago: fila.querySelector(".campo-fecha-pago").value
+      };
+    }
+
     function abrirJustificacion(id) {
       const filaPO = tablaProductos.querySelector(`tr[data-id="${id}"]`);
       let link = "";
@@ -1202,7 +1368,7 @@
       }
 
       if (link === "") {
-        alert("Primero pega un link de Drive en la columna Justificación.");
+        alert("No hay link de justificación en esta fila.");
         return;
       }
 
@@ -1366,6 +1532,11 @@
     }
 
     function exportarExcel() {
+      if (!modoAdmin) {
+        alert("Solo el administrador puede exportar.");
+        return;
+      }
+
       const productos = construirProductosParaExportar();
       const entradas = entradasOrdenadas(productos);
 
@@ -1450,7 +1621,7 @@
         const id = fila.dataset.id;
         productos[id] = {
           ...(productos[id] || {}),
-          ...obtenerDatosFila(fila)
+          ...obtenerDatosFilaCompleta(fila)
         };
       });
 
@@ -1497,6 +1668,7 @@
     }, 60 * 60 * 1000);
 
     recargarDatos(true);
+    aplicarPermisos();
   </script>
 </body>
 </html>
